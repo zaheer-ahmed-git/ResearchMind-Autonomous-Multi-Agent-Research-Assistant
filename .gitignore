@@ -1,10 +1,41 @@
-# Python-generated files
+# Python
 __pycache__/
-*.py[oc]
-build/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
 dist/
-wheels/
-*.egg-info
+build/
+.venv/
+venv/
+env/
 
-# Virtual environments
-.venv
+# Environment & secrets
+.env
+.env.local
+*.pem
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Caches & logs
+.cache/
+*.log
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local DBs
+*.db
+*.sqlite3
+
+# Node / Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/out/
