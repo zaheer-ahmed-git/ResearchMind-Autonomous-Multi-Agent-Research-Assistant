@@ -1,0 +1,4 @@
+{
+  "query": "How do LangGraph research agents reduce hallucinations with memory pruning and adaptive ranking?",
+  "max_refine_loops": 2
+}
