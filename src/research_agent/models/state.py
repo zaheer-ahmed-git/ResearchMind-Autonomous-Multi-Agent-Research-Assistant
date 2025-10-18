@@ -25,9 +25,24 @@ class ResearchState(TypedDict, total=False):
     refine_loops: int
     max_refine_loops: int
     memory_items: list[dict[str, Any]]
+    stm_items: list[dict[str, Any]]
+    vector_docs: list[dict[str, Any]]
+    vector_hits: list[dict[str, Any]]
     memory_pruned: int
     ranking_meta: dict[str, Any]
     should_refine: bool
+    should_revise: bool
+    route: str
+    route_log: list[str]
+    stage: str
+    status: str
+    qa: dict[str, Any]
+    needs_human: bool
+    pause_for_human: bool
+    quality_threshold: float
+    checkpoint: dict[str, Any]
+    human_decision: dict[str, Any]
+    revision_loops: int
     traces: Annotated[list[dict[str, Any]], operator.add]
     metrics: Annotated[dict[str, Any], _merge_dicts]
     mode: str
