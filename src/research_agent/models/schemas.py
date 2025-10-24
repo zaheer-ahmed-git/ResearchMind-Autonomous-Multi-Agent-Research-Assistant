@@ -46,6 +46,14 @@ class ResearchRequest(BaseModel):
     query: str = Field(min_length=3, max_length=2000)
     max_refine_loops: int | None = None
     use_llm: bool | None = None
+    pause_for_human: bool = False
+    quality_threshold: float | None = None
+
+
+class ResumeRequest(BaseModel):
+    approved: bool
+    feedback: str | None = None
+    reviewer: str | None = None
 
 
 class ResearchResponse(BaseModel):
@@ -61,3 +69,8 @@ class ResearchResponse(BaseModel):
     latency_reduction_pct: float
     traces: list[TraceEvent]
     mode: Literal["offline", "llm"]
+    status: Literal["completed", "paused"] = "completed"
+    qa_score: float = 0.0
+    human_review: dict[str, Any] = Field(default_factory=dict)
+    checkpoint_id: str | None = None
+    stage: str = "completed"

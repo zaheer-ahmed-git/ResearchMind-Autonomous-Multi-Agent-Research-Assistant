@@ -7,10 +7,12 @@ from fastapi import APIRouter, HTTPException
 from research_agent import __version__
 from research_agent.api.deps import get_run, list_runs, save_run
 from research_agent.config import get_settings
-from research_agent.graph.builder import run_research
-from research_agent.models.schemas import ResearchRequest, ResearchResponse
+from research_agent.graph.builder import resume_research, run_research
+from research_agent.hitl.checkpoint import HumanCheckpoint
+from research_agent.models.schemas import ResearchRequest, ResearchResponse, ResumeRequest
 
 router = APIRouter()
+_CHECKPOINTS = HumanCheckpoint()
 
 
 @router.get("/health")
@@ -33,6 +35,8 @@ def start_research(body: ResearchRequest) -> ResearchResponse:
         body.query,
         settings=settings,
         max_refine_loops=body.max_refine_loops,
+        pause_for_human=body.pause_for_human,
+        quality_threshold=body.quality_threshold,
     )
     save_run(result)
     return result
@@ -49,6 +53,37 @@ def get_research_run(run_id: str) -> ResearchResponse:
     if run is None:
         raise HTTPException(status_code=404, detail="Run not found")
     return run
+
+
+@router.get("/research/runs/{run_id}/checkpoint")
+def get_checkpoint(run_id: str) -> dict:
+    run = get_run(run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail="Run not found")
+    checkpoint = _CHECKPOINTS.for_task(run_id)
+    if checkpoint is None:
+        raise HTTPException(status_code=404, detail="Checkpoint not found")
+    return checkpoint
+
+
+@router.post("/research/runs/{run_id}/resume", response_model=ResearchResponse)
+def resume_human_review(run_id: str, body: ResumeRequest) -> ResearchResponse:
+    run = get_run(run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail="Run not found")
+    if run.status != "paused":
+        raise HTTPException(status_code=409, detail="Run is not waiting for review")
+    try:
+        result = resume_research(
+            run_id,
+            approved=body.approved,
+            feedback=body.feedback,
+            reviewer=body.reviewer,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Run thread not found") from exc
+    save_run(result)
+    return result
 
 
 @router.get("/research/runs/{run_id}/traces")

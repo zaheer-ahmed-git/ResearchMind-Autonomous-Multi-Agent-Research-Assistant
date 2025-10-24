@@ -4,6 +4,7 @@ from research_agent.models.schemas import (
     EvidenceItem,
     ResearchRequest,
     ResearchResponse,
+    ResumeRequest,
     SubTask,
     TraceEvent,
 )
@@ -14,6 +15,7 @@ __all__ = [
     "ResearchRequest",
     "ResearchResponse",
     "ResearchState",
+    "ResumeRequest",
     "SubTask",
     "TraceEvent",
 ]
