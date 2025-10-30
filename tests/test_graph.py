@@ -94,8 +94,12 @@ def test_graph_conditional_path_completes():
     assert final.get("report")
     assert isinstance(final.get("traces"), list)
     nodes = {event.get("node") for event in final.get("traces") or []}
-    assert "planner" in nodes
-    assert "synthesizer" in nodes
+    assert "coordinator" in nodes
+    assert "research" in nodes
+    assert "analysis" in nodes
+    assert "synthesis" in nodes
+    assert "qa" in nodes
+    assert "human_checkpoint" in nodes
 
 
 def test_latency_reduction_metric_present():

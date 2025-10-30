@@ -8,16 +8,37 @@ Research basis (2026 docs and patterns):
 - Research-agent pattern: decompose → gather → analyze/verify → refine loop → synthesize
 - Next.js visualizer consumes FastAPI trace payloads (timeline + node detail), similar in spirit to TraceLens / agent SSE flow UIs
 
-## Graph
+## Step-by-step system
+
+The pipeline consolidates the original Agent Network, Human-in-the-loop, and Memory modules.
 
 ```text
 START
-  → planner      (task decomposition)
-  → gatherer     (offline corpus / evidence collect + adaptive ranking)
-  → analyst      (themes, gaps, memory pruning, confidence)
-      ├─(low confidence & loops left)→ refiner → gatherer
-      └─(ok)→ synthesizer → END
+  → coordinator          (Agent Network: decompose + route)
+  → research             (ResearchAgent: gather, rank, write STM + vector memory)
+  → analysis             (AnalysisAgent: themes, gaps, prune STM, vector search)
+      ├─ gaps remain → coordinator refine → research
+      └─ ready → synthesis   (SynthesisAgent: grounded report, stored in vector memory)
+  → qa                   (QAAgent: score, weaknesses, needs-human flag)
+  → human_checkpoint     (HumanCheckpoint + verification)
+      ├─ pause_for_human and low QA → LangGraph interrupt, resume with Command
+      ├─ rejected once → analysis
+      └─ approved → END
 ```
+
+| Original module | Where it lives now |
+|---|---|
+| `Agent Network/CoordinatorAgent` | `agents/coordinator.py` |
+| `Agent Network/ResearchAgent` | `agents/research.py` |
+| `Agent Network/AnalysisAgent` | `agents/analysis.py` |
+| `Agent Network/SynthesisAgent` | `agents/synthesis.py` |
+| `Agent Network/QualityAssuranceAgent` | `agents/qa.py` |
+| `HumaninLoop.py/human_checkpoint.py` | `hitl/checkpoint.py` |
+| `HumaninLoop.py/human_verification.py` | `hitl/verification.py` |
+| `Memory/Stm.py` | `memory/stm.py` |
+| `Memory/VectorDatabase.py` | `memory/vector_store.py` (same document metadata, local index) |
+
+Human review uses LangGraph `interrupt()` and `Command(resume=...)` with a checkpointer and stable `thread_id` (the run id). See the [interrupts guide](https://docs.langchain.com/oss/python/langgraph/interrupts).
 
 ## Latency reduction (~35%)
 

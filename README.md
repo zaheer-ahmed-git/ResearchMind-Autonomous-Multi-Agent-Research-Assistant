@@ -20,11 +20,16 @@ Built with **LangGraph**, **OpenAI API**, **Python/FastAPI**, and a **Next.js** 
 
 ```text
 Query
-  → planner (decompose)
-  → gatherer (collect + adaptive rank)
-  → analyst (themes, gaps, prune memory, confidence)
-       ├─ refine? → refiner → gatherer
-       └─ ok → synthesizer → report + traces
+  → 1. Coordinator   decompose and route
+  → 2. Research      gather evidence, STM + vector memory
+  → 3. Analysis      gaps, pruning, vector search
+       ├─ more research → back to 2
+       └─ ready
+  → 4. Synthesis     grounded report
+  → 5. QA            score and human-review flag
+  → 6. Human checkpoint
+       ├─ pause for a reviewer, then resume
+       └─ approved report + traces
                     │
                     ▼
             FastAPI /research/*  →  Next.js visualizer
@@ -67,13 +72,17 @@ docker compose up
 - `GET /research/runs` — list runs
 - `GET /research/runs/{id}` — run detail (report, evidence, metrics)
 - `GET /research/runs/{id}/traces` — execution traces for the visualizer
+- `GET /research/runs/{id}/checkpoint` — pending or completed human review
+- `POST /research/runs/{id}/resume` — approve or reject a paused checkpoint
 
 ## Project layout
 
 ```text
 src/research_agent/
-  graph/           # LangGraph builder + planner/gatherer/analyst/synthesizer/refiner
-  memory/          # STM store + pruning
+  agents/          # coordinator, research, analysis, synthesis, QA
+  hitl/            # human checkpoint + verification
+  graph/           # step-by-step LangGraph pipeline
+  memory/          # short-term memory, vector store, pruning
   ranking/         # adaptive evidence ranking
   llm/             # OpenAI + offline providers
   traces/          # span collector + latency estimates
